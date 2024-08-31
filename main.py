@@ -1,5 +1,5 @@
 # Import Modules
-import pygame, math, sys, random
+import pygame, math, sys, random, time
 
 # Constants
 winSize = (500, 500)
@@ -23,17 +23,18 @@ def eventHandler():
 def dist(a, b) -> float:
     return math.sqrt((b[0]-a[0])**2 + (b[1]-a[1])**2)
 
-def createPoint(coordinate = tuple[int], connectedTo = int or None, constraintLen = int, vel = tuple[float]):
+def createPoint(coordinate = tuple[int], connectedTo = list[int] or None, constraintLen = int, vel = tuple[float]):
     points.append({
         "pos": coordinate,
         "vel": vel
     })
     if connectedTo is not None:
-        constraints.append({
-            "0": len(points)-1,
-            "1": connectedTo,
-            "len": constraintLen
-        })
+        for idx in connectedTo:
+            constraints.append({
+                "0": len(points)-1,
+                "1": idx,
+                "len": constraintLen
+            })
 
 def updatePointPositions():
     for pt in points:
@@ -43,18 +44,6 @@ def updatePointPositions():
         a = points[constraint["0"]]["pos"]
         b = points[constraint["1"]]["pos"]
 
-
-        # Pt A
-        vec = (a[0] - b[0], a[1] - b[1]) # Get Vector
-        mag = math.sqrt(vec[0]**2 + vec[1]**2) # Get Magnitude
-
-        vec = (vec[0]/mag, vec[1]/mag) # Normalize Vector
-
-        vec = (vec[0]*constraint["len"], vec[1]*constraint["len"]) # Multiply vector by dist
-
-        pos = (b[0]+vec[0], b[1]+vec[1]) # Calculate new world position for pt "a"
-
-        points[constraint["0"]]["pos"] = pos
 
         # Pt B
         vec = (b[0] - a[0], b[1] - a[1]) # Get Vector
@@ -81,8 +70,9 @@ def render():
 
 
 # Create Points
-createPoint((250, 250), None, 25, (0.1, 0))
-createPoint((100, 250), 0, 25, (0.3, 0.02))
+createPoint((250, 250), None, 25, (0.1, -0.3))
+createPoint((100, 250), [0], 25, (-0.1, 0.1))
+createPoint((175, 350), [0,1], 25, (0.5, -0.5))
 
 # Main Loop
 while True:
@@ -99,3 +89,5 @@ while True:
     render()
 
     pygame.display.flip()
+
+    time.sleep(0.01)
