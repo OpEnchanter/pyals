@@ -2,7 +2,7 @@
 import pygame, math, sys, random, time
 
 # Constants
-winSize = (1000, 1000)
+winSize = (500, 500)
 bgColor = (0,0,0)
 cellMaxenergy = 10000
 
@@ -59,7 +59,8 @@ def createOrganism(objPt = list[tuple[int]], constraintLens = list[int]):
             "executer": None, # Point index (represents what point is executing this action)
             "type": None, # Objective type
             "data": {}, # Objective Data
-            "priority": 0
+            "priority": 0,
+            "completed": True
         },
         "asyncObjectives": [], # List of objectives to be run async
     }
@@ -87,43 +88,49 @@ class cellAi():
                 closestEnergyDist = dist(cell["pos"], pt)
                 closestEnergy = pt
 
-        if closestEnergyDist < 10:
-            energy.remove(closestEnergy)
-            cell["energy"] += 2000
-            if cell["energy"] > cellMaxenergy:
-                cell["energy"] = cellMaxenergy
+            if closestEnergyDist < 10:
+                energy.remove(closestEnergy)
+                cell["energy"] += 2000
+                if cell["energy"] > cellMaxenergy:
+                    cell["energy"] = cellMaxenergy
+                    
+                for organism in organisms:
+                    if points.index(cell) in organism["cells"]:
+                        if organism["objective"]["executer"] == points.index(cell):
+                            organism["objective"]["completed"] = True
+                            organism["objective"]["priority"] = 0
 
     def runCellActions():
         for cell in points:
             # Cell Death
             if cell["energy"] <= 0:
                 for constraint in constraints:
-                    print(points.index(cell))
                     if constraint["0"] == points.index(cell) or constraint["1"] == points.index(cell):
                         print(f"Constraint Removed\n0: {constraint['0']}\n1: {constraint['1']}")
                         constraints.remove(constraint)
                         print(constraints)
                 cell["energy"] = 5
                 points.pop(points.index(cell))
+                return
 
             # Cell objective update
             if cell["energy"] < 8500:
                 # Get closest energy
-                closestEnergyDist = 999999
+                closestEnergyDist = 99999
                 for pt in energy:
                     if dist(cell["pos"], pt) < closestEnergyDist:
                         closestEnergyDist = dist(cell["pos"], pt)
 
                 priority = closestEnergyDist * 8500-cell["energy"]
-                print(points.index(cell), priority)
 
                 for organism in organisms:
                     if points.index(cell) in organism["cells"]:
-                        if priority > organism["objective"]["priority"]:
+                        if priority > organism["objective"]["priority"] and organism["objective"]["completed"]:
                             organism["objective"]["priority"] = priority
                             organism["objective"]["type"] = "food"
                             organism["objective"]["executer"] = points.index(cell)
                             organism["objective"]["data"] = {}
+                            organism["objective"]["completed"] = False
 
                 
 
@@ -141,11 +148,15 @@ class organismAi():
             objectiveType = organism["objective"]["type"]
             if objectiveType in organismObjectiveTypes:
                 if objectiveType == "food":
+                    print("Finding food", organism["objective"]["executer"])
                     # Update velocity based on AI
-                    pt = points[organism["objective"]["executer"]]
-                    pt["vel"] = cellAi.getTargetSpeed(pt["pos"], 0.0025)
-            else:
-                print(f"Invalid objective type: '{organism['objective']['type']}'")
+                    index = organism["objective"]["executer"]
+                    if index > len(points)-1:
+                        index = len(points)-1
+                    pt = points[index]
+                    pt["vel"] = cellAi.getTargetSpeed(pt["pos"], 0.01)
+                    print(pt["vel"])
+            
 
 
 
