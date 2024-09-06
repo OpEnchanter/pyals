@@ -77,6 +77,8 @@ class cellAi():
                     closestEnergyDist = dist(location, pt)
                     closestEnergy = pt
 
+            print("Locating closest energy")
+
             return ((closestEnergy[0] - location[0]) * speed, (closestEnergy[1] - location[1]) * speed)
         return (0,0)
     
@@ -88,17 +90,17 @@ class cellAi():
                 closestEnergyDist = dist(cell["pos"], pt)
                 closestEnergy = pt
 
-            if closestEnergyDist < 10:
-                energy.remove(closestEnergy)
-                cell["energy"] += 2000
-                if cell["energy"] > cellMaxenergy:
-                    cell["energy"] = cellMaxenergy
-                    
-                for organism in organisms:
-                    if points.index(cell) in organism["cells"]:
-                        if organism["objective"]["executer"] == points.index(cell):
-                            organism["objective"]["completed"] = True
-                            organism["objective"]["priority"] = 0
+        if closestEnergyDist < 10:
+            energy.remove(closestEnergy)
+            cell["energy"] += 2000
+            if cell["energy"] > cellMaxenergy:
+                cell["energy"] = cellMaxenergy
+                
+            for organism in organisms:
+                if points.index(cell) in organism["cells"]:
+                    if organism["objective"]["executer"] == points.index(cell):
+                        organism["objective"]["completed"] = True
+                        organism["objective"]["priority"] = 0
 
     def runCellActions():
         for cell in points:
@@ -148,14 +150,12 @@ class organismAi():
             objectiveType = organism["objective"]["type"]
             if objectiveType in organismObjectiveTypes:
                 if objectiveType == "food":
-                    print("Finding food", organism["objective"]["executer"])
                     # Update velocity based on AI
                     index = organism["objective"]["executer"]
                     if index > len(points)-1:
                         index = len(points)-1
                     pt = points[index]
                     pt["vel"] = cellAi.getTargetSpeed(pt["pos"], 0.01)
-                    print(pt["vel"])
             
 
 
